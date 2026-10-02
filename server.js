@@ -1,217 +1,59 @@
-const express = require('express');
-const cors = require('cors');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(cors());
-app.use(express.json());
-
-// Uploads directory for proof-of-payment receipts
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
-});
-const upload = multer({ storage });
-
-// In-Memory Database
-let items = [
-  {
-    id: '1',
-    title: 'Texas Instruments BA II Plus Financial Calculator',
-    category: 'calculators',
-    course: 'FinMan 211 / FinAcct 101',
-    price: 150,
-    deposit: 200,
-    lenderEmail: 'j.ablanque@addu.edu.ph',
-    desc: 'Essential for finance majors. Excellent condition, fresh battery installed.',
-    image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=400&q=80',
-    zone: 'Finster Hall Lobby',
-    featured: true
-  },
-  {
-    id: '2',
-    title: 'Rotring Technical Drawing & Drafting Board Set',
-    category: 'drafting',
-    course: 'EnggDraw 101 / Arch 102',
-    price: 250,
-    deposit: 300,
-    lenderEmail: 'a.gaw@addu.edu.ph',
-    desc: 'Complete set with T-square, triangles, and carrying bag.',
-    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80',
-    zone: 'CCFC',
-    featured: false
+// 1. Configure Email Transporter (using environment variables)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER, // e.g. 'notifications@blueshare.ph'
+    pass: process.env.EMAIL_PASS  // App Password generated in Google Account
   }
-];
-
-let bookings = [];
-
-function isAdDUStudent(email) {
-  return typeof email === 'string' && email.trim().toLowerCase().endsWith('@addu.edu.ph');
-}
-
-// 1. Student Auth Endpoint
-app.post('/api/auth/verify-student', (req, res) => {
-  const { email } = req.body;
-  if (!isAdDUStudent(email)) {
-    return res.status(400).json({ success: false, error: 'Restricted to @addu.edu.ph student emails.' });
-  }
-  res.json({ success: true, verified: true, email: email.toLowerCase() });
 });
 
-// 2. Search Equipment Catalog
-app.get('/api/items', (req, res) => {
-  const { q, category, course } = req.query;
-  let results = [...items];
+// 2. Helper function to send rental request emails
+async function sendBookingNotifications(booking) {
+  const { contractId, item, borrowerEmail, pickupZone, totalPaid } = booking;
 
-  if (category && category !== 'all') results = results.filter(i => i.category === category);
-  if (course) results = results.filter(i => i.course.toLowerCase().includes(course.toLowerCase()));
-  if (q) results = results.filter(i => i.title.toLowerCase().includes(q.toLowerCase()));
-
-  results.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-  res.json({ success: true, count: results.length, data: results });
-});
-
-// 3. Create Booking & Upload GCash Receipt
-app.post('/api/bookings', upload.single('paymentReceipt'), (req, res) => {
-  const { itemId, borrowerEmail, pickupZone } = req.body;
-
-  if (!isAdDUStudent(borrowerEmail)) {
-    return res.status(403).json({ success: false, error: 'Borrower must use an @addu.edu.ph email.' });
-  }
-
-  const item = items.find(i => i.id === itemId);
-  if (!item) return res.status(404).json({ success: false, error: 'Item not found.' });
-
-  const contractId = 'CONTRACT-ADDU-' + crypto.randomBytes(4).toString('hex').toUpperCase();
-  const booking = {
-    bookingId: 'BK-' + Date.now(),
-    contractId,
-    item,
-    borrowerEmail,
-    pickupZone: pickupZone || item.zone,
-    totalPaid: item.price + item.deposit + 15,
-    status: 'PENDING_VERIFICATION',
-    createdAt: new Date().toISOString()
+  // A. Email to LENDER (New Request Alert)
+  const lenderMailOptions = {
+    from: '"BlueShare Hub" <no-reply@blueshare.ph>',
+    to: item.lenderEmail,
+    subject: `🔔 New Rental Request: ${item.title}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+        <h2 style="color: #0052FF;">New Equipment Rental Request!</h2>
+        <p>Student <strong>${borrowerEmail}</strong> has requested to borrow your <strong>${item.title}</strong>.</p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0;"/>
+        <p><strong>Contract ID:</strong> ${contractId}</p>
+        <p><strong>Safe Meetup Zone:</strong> ${pickupZone}</p>
+        <p><strong>Total Amount Paid:</strong> ₱${totalPaid}</p>
+        <p style="color: #64748B; font-size: 13px;">Please log into your BlueShare profile to verify the payment receipt and confirm handover timing.</p>
+      </div>
+    `
   };
 
-  bookings.push(booking);
-  res.status(201).json({ success: true, message: 'Booking request created.', data: booking });
-});
-
-app.listen(PORT, () => console.log(`BlueShare API running on port ${PORT}`));const express = require('express');
-const cors = require('cors');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const crypto = require('crypto');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(cors());
-app.use(express.json());
-
-// Uploads directory for proof-of-payment receipts
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
-});
-const upload = multer({ storage });
-
-// In-Memory Database
-let items = [
-  {
-    id: '1',
-    title: 'Texas Instruments BA II Plus Financial Calculator',
-    category: 'calculators',
-    course: 'FinMan 211 / FinAcct 101',
-    price: 150,
-    deposit: 200,
-    lenderEmail: 'j.ablanque@addu.edu.ph',
-    desc: 'Essential for finance majors. Excellent condition, fresh battery installed.',
-    image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=400&q=80',
-    zone: 'Finster Hall Lobby',
-    featured: true
-  },
-  {
-    id: '2',
-    title: 'Rotring Technical Drawing & Drafting Board Set',
-    category: 'drafting',
-    course: 'EnggDraw 101 / Arch 102',
-    price: 250,
-    deposit: 300,
-    lenderEmail: 'a.gaw@addu.edu.ph',
-    desc: 'Complete set with T-square, triangles, and carrying bag.',
-    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80',
-    zone: 'CCFC',
-    featured: false
-  }
-];
-
-let bookings = [];
-
-function isAdDUStudent(email) {
-  return typeof email === 'string' && email.trim().toLowerCase().endsWith('@addu.edu.ph');
-}
-
-// 1. Student Auth Endpoint
-app.post('/api/auth/verify-student', (req, res) => {
-  const { email } = req.body;
-  if (!isAdDUStudent(email)) {
-    return res.status(400).json({ success: false, error: 'Restricted to @addu.edu.ph student emails.' });
-  }
-  res.json({ success: true, verified: true, email: email.toLowerCase() });
-});
-
-// 2. Search Equipment Catalog
-app.get('/api/items', (req, res) => {
-  const { q, category, course } = req.query;
-  let results = [...items];
-
-  if (category && category !== 'all') results = results.filter(i => i.category === category);
-  if (course) results = results.filter(i => i.course.toLowerCase().includes(course.toLowerCase()));
-  if (q) results = results.filter(i => i.title.toLowerCase().includes(q.toLowerCase()));
-
-  results.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-  res.json({ success: true, count: results.length, data: results });
-});
-
-// 3. Create Booking & Upload GCash Receipt
-app.post('/api/bookings', upload.single('paymentReceipt'), (req, res) => {
-  const { itemId, borrowerEmail, pickupZone } = req.body;
-
-  if (!isAdDUStudent(borrowerEmail)) {
-    return res.status(403).json({ success: false, error: 'Borrower must use an @addu.edu.ph email.' });
-  }
-
-  const item = items.find(i => i.id === itemId);
-  if (!item) return res.status(404).json({ success: false, error: 'Item not found.' });
-
-  const contractId = 'CONTRACT-ADDU-' + crypto.randomBytes(4).toString('hex').toUpperCase();
-  const booking = {
-    bookingId: 'BK-' + Date.now(),
-    contractId,
-    item,
-    borrowerEmail,
-    pickupZone: pickupZone || item.zone,
-    totalPaid: item.price + item.deposit + 15,
-    status: 'PENDING_VERIFICATION',
-    createdAt: new Date().toISOString()
+  // B. Email to BORROWER (Booking Confirmation)
+  const borrowerMailOptions = {
+    from: '"BlueShare Hub" <no-reply@blueshare.ph>',
+    to: borrowerEmail,
+    subject: `✅ Booking Confirmed: ${item.title} (${contractId})`,
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+        <h2 style="color: #0052FF;">Rental Request Received</h2>
+        <p>Your request for <strong>${item.title}</strong> has been logged.</p>
+        <p><strong>Safe Zone Handover:</strong> ${pickupZone}</p>
+        <p><strong>Digital Contract ID:</strong> ${contractId}</p>
+        <p style="background: #FFFBEB; padding: 10px; border-radius: 6px; color: #92400E; font-size: 13px;">
+          🔒 <strong>AdDU Safety Protocol:</strong> Remember to log baseline photos of the equipment condition during handover at the safe zone.
+        </p>
+      </div>
+    `
   };
 
-  bookings.push(booking);
-  res.status(201).json({ success: true, message: 'Booking request created.', data: booking });
-});
-
-app.listen(PORT, () => console.log(`BlueShare API running on port ${PORT}`));
+  try {
+    await transporter.sendMail(lenderMailOptions);
+    await transporter.sendMail(borrowerMailOptions);
+    console.log(`[EMAIL]: Notifications sent for Contract ${contractId}`);
+  } catch (err) {
+    console.error(`[EMAIL ERROR]: Failed to send notifications:`, err);
+  }
+}
