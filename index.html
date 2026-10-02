@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>BlueShare — Campus Resource Marketplace</title>
   <style>
     :root {
       --primary: #0052FF;
       --primary-dark: #0033B8;
+      --primary-light: #EFF6FF;
       --bg-light: #F8FAFC;
       --surface: #FFFFFF;
       --text-main: #0F172A;
@@ -15,195 +16,484 @@
       --border: #E2E8F0;
       --success: #10B981;
       --accent: #F59E0B;
+      --error: #EF4444;
+      --radius: 12px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-light); color: var(--text-main); line-height: 1.5; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-light); color: var(--text-main); line-height: 1.5; min-height: 100vh; }
 
-    /* Header & Navigation */
-    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; position: sticky; top: 0; z-index: 100; }
-    .header-container { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-    .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: var(--text-main); }
-    .brand-logo { width: 42px; height: 42px; background: var(--primary); color: white; font-weight: bold; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-    .brand-title { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
-    .brand-tagline { font-size: 0.75rem; color: var(--text-muted); }
-    
-    .auth-badge { background: #EFF6FF; border: 1px solid #BFDBFE; color: var(--primary-dark); padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; }
-    .auth-badge::before { content: "✓"; background: var(--primary); color: white; border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.6rem; }
+    .hidden { display: none !important; }
 
-    /* Main Layout */
-    .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+    /* ==========================================================================
+       1. AUTHENTICATION LANDING PAGE
+       ========================================================================== */
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      background: linear-gradient(135deg, #0052FF 0%, #001F73 100%);
+    }
+
+    .auth-card {
+      background: var(--surface);
+      width: 100%;
+      max-width: 440px;
+      border-radius: 24px;
+      padding: 2.25rem 1.75rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .auth-brand {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .brand-logo-large {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #0052FF, #0033B8);
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      box-shadow: 0 10px 20px rgba(0, 82, 255, 0.35);
+    }
+    .brand-logo-large svg {
+      width: 40px;
+      height: 40px;
+      fill: none;
+      stroke: #FFFFFF;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .auth-title { font-size: 1.8rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+    .auth-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    .auth-tabs {
+      display: flex;
+      background: #F1F5F9;
+      padding: 0.35rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .auth-tab-btn {
+      flex: 1;
+      padding: 0.7rem;
+      border: none;
+      background: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 9px;
+      transition: all 0.2s ease;
+      min-height: 44px;
+    }
+
+    .auth-tab-btn.active {
+      background: var(--surface);
+      color: var(--primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .error-banner {
+      background: #FEF2F2;
+      border: 1px solid #FCA5A5;
+      color: #991B1B;
+      padding: 0.85rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      line-height: 1.4;
+    }
+
+    /* ==========================================================================
+       2. HEADER & LOGO (UPPER LEFT CORNER)
+       ========================================================================== */
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0.85rem 1.25rem; position: sticky; top: 0; z-index: 100; }
+    .header-container { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
     
-    /* Navigation Tabs */
-    .nav-tabs { display: flex; gap: 1rem; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; }
-    .tab-btn { padding: 0.75rem 1.25rem; background: none; border: none; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); cursor: pointer; position: relative; bottom: -2px; }
+    .brand-header-left { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: var(--text-main); }
+    .logo-icon-small {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #0052FF, #0033B8);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(0, 82, 255, 0.25);
+    }
+    .logo-icon-small svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: #FFFFFF;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .brand-title { font-size: 1.25rem; font-weight: 800; color: var(--primary); line-height: 1.2; letter-spacing: -0.3px; }
+    .brand-tagline { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+    
+    .user-profile-badge { display: flex; align-items: center; gap: 0.6rem; }
+    
+    .auth-badge {
+      background: var(--primary-light);
+      border: 1px solid #BFDBFE;
+      color: var(--primary-dark);
+      padding: 0.4rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .auth-badge:hover { background: #DBEAFE; }
+    .auth-badge::before { content: "✓"; background: var(--primary); color: white; border-radius: 50%; width: 15px; height: 15px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem; }
+
+    .btn-logout {
+      background: #F1F5F9;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 38px;
+      transition: background 0.2s;
+    }
+    .btn-logout:hover { background: #E2E8F0; color: var(--text-main); }
+
+    /* ==========================================================================
+       3. MARKETPLACE LAYOUT & CARDS
+       ========================================================================== */
+    .container { max-width: 1100px; margin: 1.5rem auto; padding: 0 1rem; }
+    
+    .nav-tabs { display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border); margin-bottom: 1.25rem; }
+    .tab-btn { padding: 0.75rem 1rem; background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer; position: relative; bottom: -2px; min-height: 48px; }
     .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
 
-    /* Search & Filter Bar */
-    .filter-card { background: var(--surface); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; }
-    .search-input, .select-input { padding: 0.65rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; flex: 1; min-width: 180px; }
-    .search-input:focus, .select-input:focus { outline: none; border-color: var(--primary); }
+    .filter-card { background: var(--surface); padding: 1rem; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .search-input, .select-input { padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 10px; font-size: 0.9rem; flex: 1; min-width: 200px; min-height: 46px; }
+    .search-input:focus, .select-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.15); }
 
-    /* Items Grid */
-    .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem; }
-    .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; }
-    .item-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-    .item-image { width: 100%; height: 160px; object-fit: cover; background: #E2E8F0; }
-    .item-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
-    .item-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; background: #F1F5F9; color: var(--text-muted); padding: 0.2rem 0.5rem; border-radius: 4px; width: fit-content; margin-bottom: 0.5rem; }
-    .item-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .item-course { font-size: 0.8rem; color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; }
-    .item-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; flex: 1; }
-    .item-meta { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 0.75rem; margin-top: auto; }
-    .item-price { font-size: 1.1rem; font-weight: 800; color: var(--text-main); }
-    .item-price span { font-size: 0.75rem; font-weight: 400; color: var(--text-muted); }
+    .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.25rem; }
+    
+    .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; }
+    .item-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,0.06); }
+    .item-image { width: 100%; height: 165px; object-fit: cover; background: #E2E8F0; }
+    .item-body { padding: 1.1rem; flex: 1; display: flex; flex-direction: column; }
+    .item-badge { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #F1F5F9; color: var(--text-muted); padding: 0.25rem 0.55rem; border-radius: 6px; width: fit-content; margin-bottom: 0.5rem; }
+    .item-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.25rem; line-height: 1.3; }
+    .item-course { font-size: 0.82rem; color: var(--primary); font-weight: 700; margin-bottom: 0.5rem; }
+    .item-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; flex: 1; line-height: 1.4; }
+    .item-meta { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 0.85rem; margin-top: auto; }
+    .item-price { font-size: 1.15rem; font-weight: 800; color: var(--text-main); }
+    .item-price span { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
 
-    /* Buttons & Forms */
-    .btn { padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.9rem; transition: background 0.2s; }
+    .btn { padding: 0.75rem 1.25rem; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; font-size: 0.92rem; transition: background 0.2s; min-height: 46px; display: inline-flex; align-items: center; justify-content: center; }
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: #F1F5F9; color: var(--text-main); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: #E2E8F0; }
+    .btn-danger { background: #FEF2F2; color: var(--error); border: 1px solid #FCA5A5; }
+    .btn-danger:hover { background: #FEE2E2; }
     .btn-block { width: 100%; margin-top: 0.5rem; }
 
-    /* Form Styles */
-    .form-group { margin-bottom: 1.25rem; }
-    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; }
-    .form-control { width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; }
+    .form-group { margin-bottom: 1.15rem; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-main); }
+    .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 10px; font-size: 0.92rem; min-height: 46px; }
 
-    /* Modal Styling */
-    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
-    .modal-card { background: var(--surface); border-radius: 16px; max-width: 500px; width: 100%; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
+    /* ==========================================================================
+       4. MODALS (CHECKOUT & USER PROFILE)
+       ========================================================================== */
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+    .modal-card { background: var(--surface); border-radius: 20px; max-width: 500px; width: 100%; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
-    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
-    
-    .notice-box { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; padding: 0.75rem; border-radius: 8px; font-size: 0.8rem; margin-bottom: 1rem; }
-    .hidden { display: none !important; }
+    .close-btn { background: none; border: none; font-size: 1.75rem; cursor: pointer; color: var(--text-muted); line-height: 1; }
+    .notice-box { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; padding: 0.85rem; border-radius: 10px; font-size: 0.82rem; margin-bottom: 1rem; line-height: 1.4; }
+
+    /* USER PROFILE STYLES */
+    .profile-avatar-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.25rem;
+    }
+    .profile-avatar-circle {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0052FF, #0033B8);
+      color: white;
+      font-size: 1.6rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .profile-info h3 { font-size: 1.2rem; font-weight: 800; }
+    .profile-info p { font-size: 0.85rem; color: var(--text-muted); }
+
+    .profile-stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .profile-stat-box {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem;
+      text-align: center;
+    }
+    .profile-stat-number { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+    .profile-stat-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+    .profile-section-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+
+    .profile-item-mini {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem;
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 640px) {
+      header { padding: 0.75rem 1rem; }
+      .brand-tagline { display: none; }
+      .container { margin: 1rem auto; }
+      .items-grid { grid-template-columns: 1fr; }
+      .filter-card { flex-direction: column; gap: 0.5rem; }
+      .search-input, .select-input { width: 100%; min-width: 100%; }
+      .auth-card { padding: 1.75rem 1.25rem; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <header>
-    <div class="header-container">
-      <a href="#" class="brand">
-        <div class="brand-logo">BS</div>
-        <div>
-          <div class="brand-title">BlueShare</div>
-          <div class="brand-tagline">Lend · Borrow · Return</div>
+  <!-- ==========================================================================
+       SECTION 1: FRONT AUTHENTICATION LANDING PAGE
+       ========================================================================== -->
+  <div id="authScreen" class="auth-container">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="brand-logo-large">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
         </div>
-      </a>
-      <div class="auth-badge">
-        Verified AdDU Student (@addu.edu.ph)
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Container -->
-  <div class="container">
-    
-    <!-- Navigation Tabs -->
-    <div class="nav-tabs">
-      <button class="tab-btn active" id="tabBrowse" onclick="switchTab('browse')">Borrow Equipment</button>
-      <button class="tab-btn" id="tabLend" onclick="switchTab('lend')">Lend an Item</button>
-    </div>
-
-    <!-- BORROW SECTION -->
-    <div id="sectionBrowse">
-      
-      <!-- Filter Bar -->
-      <div class="filter-card">
-        <input type="text" id="searchInput" class="search-input" placeholder="Search item name or course code (e.g. FinMan 211, BA II Plus)..." oninput="filterItems()">
-        <select id="categoryFilter" class="select-input" onchange="filterItems()">
-          <option value="all">All Categories</option>
-          <option value="calculators">Financial / Sci Calculators</option>
-          <option value="drafting">Technical Drawing & Drafting</option>
-          <option value="labgown">Lab Coats & Safety Gear</option>
-          <option value="tech">Cameras & Tech Kits</option>
-          <option value="books">Textbooks & Reviewers</option>
-        </select>
+        <h1 class="auth-title">BlueShare</h1>
+        <p class="auth-subtitle">Ateneo de Davao Peer-to-Peer Resource Hub</p>
       </div>
 
-      <!-- Items Grid -->
-      <div class="items-grid" id="itemsGrid"></div>
-    </div>
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="authTabLogin" onclick="switchAuthMode('login')">Sign In</button>
+        <button class="auth-tab-btn" id="authTabRegister" onclick="switchAuthMode('register')">Register Student</button>
+      </div>
 
-    <!-- LEND SECTION -->
-    <div id="sectionLend" class="hidden">
-      <div style="max-width: 650px; margin: 0 auto; background: var(--surface); padding: 2rem; border-radius: 12px; border: 1px solid var(--border);">
-        <h2 style="margin-bottom: 0.5rem;">List Your Equipment for Rent</h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Monetize your unused academic gear safely with verified AdDU lowerclassmen.</p>
-        
-        <form id="lendForm" onsubmit="handleLendSubmit(event)">
-          <div class="form-group">
-            <label>Item Title</label>
-            <input type="text" id="lendTitle" class="form-control" placeholder="e.g. Texas Instruments BA II Plus Financial Calculator" required>
+      <div id="authError" class="error-banner hidden"></div>
+
+      <!-- Sign In Form -->
+      <form id="loginForm" onsubmit="handleAuth(event, 'login')">
+        <div class="form-group">
+          <label>AdDU Student Email</label>
+          <input type="email" id="loginEmail" class="form-control" placeholder="username@addu.edu.ph" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Enter BlueShare Hub</button>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form id="registerForm" class="hidden" onsubmit="handleAuth(event, 'register')">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="regName" class="form-control" placeholder="e.g. Jedrick Ablanque" required>
+        </div>
+        <div class="form-group">
+          <label>Student ID Number</label>
+          <input type="text" id="regId" class="form-control" placeholder="e.g. 2023-12345" required>
+        </div>
+        <div class="form-group">
+          <label>AdDU Student Email (@addu.edu.ph required)</label>
+          <input type="email" id="regEmail" class="form-control" placeholder="j.ablanque@addu.edu.ph" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="regPassword" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Create Verified Student Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       SECTION 2: MAIN MARKETPLACE WITH UPPER-LEFT LOGO
+       ========================================================================== -->
+  <div id="mainApp" class="hidden">
+    <!-- Header -->
+    <header>
+      <div class="header-container">
+        <!-- LOGO IN UPPER LEFT CORNER -->
+        <a href="#" class="brand-header-left">
+          <div class="logo-icon-small">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
           </div>
+          <div>
+            <div class="brand-title">BlueShare</div>
+            <div class="brand-tagline">Lend · Borrow · Return</div>
+          </div>
+        </a>
+
+        <div class="user-profile-badge">
+          <!-- CLICKABLE PROFILE BADGE -->
+          <div class="auth-badge" onclick="openProfileModal()" title="View Student Profile">
+            <span>Student Profile: </span><strong id="userBadgeText">Verified</strong>
+          </div>
+          <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Marketplace Container -->
+    <div class="container">
+      
+      <!-- Navigation Tabs -->
+      <div class="nav-tabs">
+        <button class="tab-btn active" id="tabBrowse" onclick="switchTab('browse')">Borrow Equipment</button>
+        <button class="tab-btn" id="tabLend" onclick="switchTab('lend')">Lend an Item</button>
+      </div>
+
+      <!-- BORROW SECTION -->
+      <div id="sectionBrowse">
+        <div class="filter-card">
+          <input type="text" id="searchInput" class="search-input" placeholder="Search item or course (e.g. FinMan 211, BA II Plus)..." oninput="filterItems()">
+          <select id="categoryFilter" class="select-input" onchange="filterItems()">
+            <option value="all">All Categories</option>
+            <option value="calculators">Financial / Sci Calculators</option>
+            <option value="drafting">Technical Drawing & Drafting</option>
+            <option value="labgown">Lab Coats & Safety Gear</option>
+            <option value="tech">Cameras & Tech Kits</option>
+            <option value="books">Textbooks & Reviewers</option>
+          </select>
+        </div>
+
+        <div class="items-grid" id="itemsGrid"></div>
+      </div>
+
+      <!-- LEND SECTION -->
+      <div id="sectionLend" class="hidden">
+        <div style="max-width: 650px; margin: 0 auto; background: var(--surface); padding: 1.75rem; border-radius: 18px; border: 1px solid var(--border);">
+          <h2 style="margin-bottom: 0.3rem; font-size: 1.35rem; font-weight: 800;">List Your Equipment for Rent</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.25rem;">Monetize your unused academic gear safely with verified AdDU students.</p>
           
-          <div style="display: flex; gap: 1rem;">
-            <div class="form-group" style="flex: 1;">
-              <label>Category</label>
-              <select id="lendCategory" class="form-control" required>
-                <option value="calculators">Financial / Sci Calculator</option>
-                <option value="drafting">Technical Drawing & Drafting</option>
-                <option value="labgown">Lab Coat / Science Gear</option>
-                <option value="tech">Cameras & Tech Kits</option>
-                <option value="books">Textbook / Reviewer</option>
+          <form id="lendForm" onsubmit="handleLendSubmit(event)">
+            <div class="form-group">
+              <label>Item Title</label>
+              <input type="text" id="lendTitle" class="form-control" placeholder="e.g. Texas Instruments BA II Plus Financial Calculator" required>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <div class="form-group" style="flex: 1; min-width: 140px;">
+                <label>Category</label>
+                <select id="lendCategory" class="form-control" required>
+                  <option value="calculators">Financial / Sci Calculator</option>
+                  <option value="drafting">Technical Drawing & Drafting</option>
+                  <option value="labgown">Lab Coat / Science Gear</option>
+                  <option value="tech">Cameras & Tech Kits</option>
+                  <option value="books">Textbook / Reviewer</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 1; min-width: 140px;">
+                <label>Course Code Tag</label>
+                <input type="text" id="lendCourse" class="form-control" placeholder="e.g. FinMan 211 / Acct 101" required>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <div class="form-group" style="flex: 1; min-width: 140px;">
+                <label>Rental Rate (₱ / Semester)</label>
+                <input type="number" id="lendPrice" class="form-control" placeholder="150" required>
+              </div>
+              <div class="form-group" style="flex: 1; min-width: 140px;">
+                <label>Refundable Deposit (₱)</label>
+                <input type="number" id="lendDeposit" class="form-control" placeholder="200" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Preferred On-Campus Safe Meetup Zone</label>
+              <select id="lendZone" class="form-control" required>
+                <option value="Finster Hall Lobby">Finster Hall Lobby</option>
+                <option value="Dotterweich Hall">Dotterweich Hall</option>
+                <option value="CCFC / Community Center">CCFC (Community Center)</option>
+                <option value="Brenchley Library Entrance">Brenchley Library Entrance</option>
               </select>
             </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Course Code Tag</label>
-              <input type="text" id="lendCourse" class="form-control" placeholder="e.g. FinMan 211 / Acct 101" required>
+
+            <div class="form-group">
+              <label>Item Description & Condition</label>
+              <textarea id="lendDesc" class="form-control" rows="3" placeholder="Mention battery status, cosmetic state, and included accessories..." required></textarea>
             </div>
-          </div>
 
-          <div style="display: flex; gap: 1rem;">
-            <div class="form-group" style="flex: 1;">
-              <label>Rental Rate (₱ / Semester)</label>
-              <input type="number" id="lendPrice" class="form-control" placeholder="150" required>
+            <div class="form-group">
+              <label>Upload Item Photo (Condition Baseline)</label>
+              <input type="file" id="lendPhoto" class="form-control" accept="image/*" required>
             </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Refundable Deposit (₱)</label>
-              <input type="number" id="lendDeposit" class="form-control" placeholder="200" required>
+
+            <div style="background: #F8FAFC; padding: 1rem; border-radius: 12px; border: 1px dashed var(--border); margin-bottom: 1.25rem;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
+                <input type="checkbox" id="lendFeatured"> Feature my listing at top of search results (+₱30 listing fee)
+              </label>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label>Preferred On-Campus Safe Meetup Zone</label>
-            <select id="lendZone" class="form-control" required>
-              <option value="Finster Hall Lobby">Finster Hall Lobby</option>
-              <option value="Dotterweich Hall">Dotterweich Hall</option>
-              <option value="CCFC / Community Center">CCFC (Community Center)</option>
-              <option value="Brenchley Library Entrance">Brenchley Library Entrance</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Item Description & Condition</label>
-            <textarea id="lendDesc" class="form-control" rows="3" placeholder="Mention battery status, cosmetic state, and included accessories..." required></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Upload Item Photo (Condition Baseline)</label>
-            <input type="file" id="lendPhoto" class="form-control" accept="image/*" required>
-          </div>
-
-          <div style="background: #F8FAFC; padding: 1rem; border-radius: 8px; border: 1px dashed var(--border); margin-bottom: 1.5rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
-              <input type="checkbox" id="lendFeatured"> Feature my listing at top of search results (+₱30 listing fee)
-            </label>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-block" style="padding: 0.8rem;">Publish Listing to Campus Network</button>
-        </form>
+            <button type="submit" class="btn btn-primary btn-block">Publish Listing to Campus Network</button>
+          </form>
+        </div>
       </div>
-    </div>
 
+    </div>
   </div>
 
   <!-- RENTAL CHECKOUT MODAL -->
   <div id="checkoutModal" class="modal-backdrop hidden">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 id="modalItemTitle">Borrow Item</h3>
+        <h3 id="modalItemTitle" style="font-size: 1.1rem; font-weight: 800;">Borrow Item</h3>
         <button class="close-btn" onclick="closeModal()">&times;</button>
       </div>
 
@@ -212,11 +502,9 @@
       </div>
 
       <form id="checkoutForm" onsubmit="handleCheckoutSubmit(event)">
-        <input type="hidden" id="modalItemId">
-        
         <div class="form-group">
           <label>Selected Rental Duration</label>
-          <select id="rentalDuration" class="form-control" onchange="updateTotal()">
+          <select id="rentalDuration" class="form-control">
             <option value="semester">Full Semester (Preferred)</option>
             <option value="weekly">1-3 Weeks (Exam Period)</option>
             <option value="daily">Single Exam Day</option>
@@ -233,18 +521,18 @@
           </select>
         </div>
 
-        <div style="background: #F1F5F9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+        <div style="background: #F1F5F9; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.85rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
             <span>Rental Rate:</span> <span id="summaryPrice">₱0</span>
           </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
             <span>Refundable Security Deposit:</span> <span id="summaryDeposit">₱0</span>
           </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
             <span>Platform Unlock Fee:</span> <span>₱15</span>
           </div>
           <hr style="margin: 0.5rem 0; border: none; border-top: 1px solid var(--border);">
-          <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.95rem; color: var(--primary-dark);">
+          <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 0.98rem; color: var(--primary-dark);">
             <span>Total Payable via eWallet:</span> <span id="summaryTotal">₱0</span>
           </div>
         </div>
@@ -252,7 +540,7 @@
         <div class="form-group">
           <label>Upload GCash / Maya Proof of Payment</label>
           <input type="file" class="form-control" accept="image/*" required>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">Send payment to Lender eWallet # provided upon checkout.</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Send payment to Lender eWallet # provided upon checkout.</span>
         </div>
 
         <div class="form-group">
@@ -267,9 +555,49 @@
     </div>
   </div>
 
+  <!-- ==========================================================================
+       SECTION 5: USER PROFILE MODAL
+       ========================================================================== -->
+  <div id="profileModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-size: 1.15rem; font-weight: 800;">Student Profile</h3>
+        <button class="close-btn" onclick="closeProfileModal()">&times;</button>
+      </div>
+
+      <div class="profile-avatar-header">
+        <div class="profile-avatar-circle" id="profileInitials">ST</div>
+        <div class="profile-info">
+          <h3 id="profileName">Student Name</h3>
+          <p id="profileEmail">email@addu.edu.ph</p>
+          <p style="font-size: 0.75rem; color: var(--primary); font-weight: 700; margin-top: 0.2rem;">✓ Verified Ateneo de Davao Student</p>
+        </div>
+      </div>
+
+      <div class="profile-stats-row">
+        <div class="profile-stat-box">
+          <div class="profile-stat-number" id="profileMyListingsCount">0</div>
+          <div class="profile-stat-label">Active Listings</div>
+        </div>
+        <div class="profile-stat-box">
+          <div class="profile-stat-number" id="profileBorrowCount">1</div>
+          <div class="profile-stat-label">Rental Bookings</div>
+        </div>
+      </div>
+
+      <div class="profile-section-title">My Listed Equipment</div>
+      <div id="myListingsContainer">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div style="margin-top: 1.5rem; text-align: right;">
+        <button class="btn btn-secondary" onclick="closeProfileModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- JavaScript Logic -->
   <script>
-    // Initial Seed Catalog Data
     const defaultItems = [
       {
         id: 1,
@@ -278,6 +606,7 @@
         course: "FinMan 211 / FinAcct 101",
         price: 150,
         deposit: 200,
+        lenderEmail: "j.ablanque@addu.edu.ph",
         desc: "Essential for finance majors. Excellent condition, fresh battery installed.",
         image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=400&q=80",
         zone: "Finster Hall Lobby"
@@ -289,6 +618,7 @@
         course: "EnggDraw 101 / Arch 102",
         price: 250,
         deposit: 300,
+        lenderEmail: "a.gaw@addu.edu.ph",
         desc: "Complete set with T-square, triangles, and carrying bag. Clean surface.",
         image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80",
         zone: "CCFC"
@@ -300,6 +630,7 @@
         course: "SciLab 102 / Chem 11",
         price: 80,
         deposit: 100,
+        lenderEmail: "e.remis@addu.edu.ph",
         desc: "Washed and ironed. Required for all natural science laboratory classes.",
         image: "https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?auto=format&fit=crop&w=400&q=80",
         zone: "Dotterweich Hall"
@@ -311,6 +642,7 @@
         course: "BFA Photo 101 / Comm 22",
         price: 600,
         deposit: 800,
+        lenderEmail: "j.ablanque@addu.edu.ph",
         desc: "Includes 18-55mm lens, 32GB SD card, and neck strap. Perfect for class projects.",
         image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=400&q=80",
         zone: "Brenchley Library Entrance"
@@ -320,7 +652,109 @@
     let campusItems = JSON.parse(localStorage.getItem('blueShareItems')) || defaultItems;
     let selectedItemForCheckout = null;
 
-    // Render Grid
+    // --- Authentication & Session State ---
+    function checkSession() {
+      const activeUser = JSON.parse(localStorage.getItem('blueShareUser'));
+      if (activeUser && activeUser.email) {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        document.getElementById('userBadgeText').innerText = activeUser.email;
+        renderCatalog(campusItems);
+      } else {
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+      }
+    }
+
+    function switchAuthMode(mode) {
+      document.getElementById('authError').classList.add('hidden');
+      if (mode === 'login') {
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('registerForm').classList.add('hidden');
+        document.getElementById('authTabLogin').classList.add('active');
+        document.getElementById('authTabRegister').classList.remove('active');
+      } else {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('registerForm').classList.remove('hidden');
+        document.getElementById('authTabRegister').classList.add('active');
+        document.getElementById('authTabLogin').classList.remove('active');
+      }
+    }
+
+    function handleAuth(e, mode) {
+      e.preventDefault();
+      const errBox = document.getElementById('authError');
+      errBox.classList.add('hidden');
+
+      let email = mode === 'login' ? document.getElementById('loginEmail').value.trim() : document.getElementById('regEmail').value.trim();
+      let name = mode === 'register' ? document.getElementById('regName').value.trim() : email.split('@')[0];
+
+      if (!email.toLowerCase().endsWith('@addu.edu.ph')) {
+        errBox.innerText = "❌ Access Restricted: You must use an official @addu.edu.ph student email address.";
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      localStorage.setItem('blueShareUser', JSON.stringify({ name, email, loginTime: new Date().toISOString() }));
+      checkSession();
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('blueShareUser');
+      checkSession();
+    }
+
+    // --- User Profile Modal ---
+    function openProfileModal() {
+      const activeUser = JSON.parse(localStorage.getItem('blueShareUser'));
+      if (!activeUser) return;
+
+      document.getElementById('profileName').innerText = activeUser.name || 'AdDU Student';
+      document.getElementById('profileEmail').innerText = activeUser.email;
+      
+      const initials = (activeUser.name || 'ST').split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
+      document.getElementById('profileInitials').innerText = initials || 'ST';
+
+      // My listings
+      const myListings = campusItems.filter(i => i.lenderEmail === activeUser.email);
+      document.getElementById('profileMyListingsCount').innerText = myListings.length;
+
+      const container = document.getElementById('myListingsContainer');
+      container.innerHTML = '';
+
+      if (myListings.length === 0) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 1rem;">You haven't listed any equipment for rent yet.</div>`;
+      } else {
+        myListings.forEach(item => {
+          container.innerHTML += `
+            <div class="profile-item-mini">
+              <div>
+                <strong>${item.title}</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">₱${item.price}/sem • Tag: ${item.course}</div>
+              </div>
+              <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; min-height: 30px;" onclick="deleteMyListing(${item.id})">Remove</button>
+            </div>
+          `;
+        });
+      }
+
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function deleteMyListing(id) {
+      if (confirm("Are you sure you want to remove this equipment listing?")) {
+        campusItems = campusItems.filter(i => i.id !== id);
+        localStorage.setItem('blueShareItems', JSON.stringify(campusItems));
+        openProfileModal();
+        renderCatalog(campusItems);
+      }
+    }
+
+    // --- Catalog & Filter Logic ---
     function renderCatalog(itemsToRender) {
       const grid = document.getElementById('itemsGrid');
       grid.innerHTML = '';
@@ -349,7 +783,6 @@
       });
     }
 
-    // Filter Functionality
     function filterItems() {
       const query = document.getElementById('searchInput').value.toLowerCase();
       const category = document.getElementById('categoryFilter').value;
@@ -363,7 +796,6 @@
       renderCatalog(filtered);
     }
 
-    // Tab Switching
     function switchTab(tab) {
       if (tab === 'browse') {
         document.getElementById('sectionBrowse').classList.remove('hidden');
@@ -378,7 +810,6 @@
       }
     }
 
-    // Modal Handling
     function openCheckout(id) {
       selectedItemForCheckout = campusItems.find(i => i.id === id);
       if (!selectedItemForCheckout) return;
@@ -395,26 +826,20 @@
       document.getElementById('checkoutModal').classList.add('hidden');
     }
 
-    // New Listing Submission
     function handleLendSubmit(e) {
       e.preventDefault();
-      const title = document.getElementById('lendTitle').value;
-      const category = document.getElementById('lendCategory').value;
-      const course = document.getElementById('lendCourse').value;
-      const price = parseInt(document.getElementById('lendPrice').value);
-      const deposit = parseInt(document.getElementById('lendDeposit').value);
-      const zone = document.getElementById('lendZone').value;
-      const desc = document.getElementById('lendDesc').value;
-
+      const activeUser = JSON.parse(localStorage.getItem('blueShareUser')) || {};
+      
       const newItem = {
         id: Date.now(),
-        title,
-        category,
-        course,
-        price,
-        deposit,
-        desc,
-        zone,
+        title: document.getElementById('lendTitle').value,
+        category: document.getElementById('lendCategory').value,
+        course: document.getElementById('lendCourse').value,
+        price: parseInt(document.getElementById('lendPrice').value),
+        deposit: parseInt(document.getElementById('lendDeposit').value),
+        zone: document.getElementById('lendZone').value,
+        desc: document.getElementById('lendDesc').value,
+        lenderEmail: activeUser.email || 'j.ablanque@addu.edu.ph',
         image: "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&w=400&q=80"
       };
 
@@ -433,8 +858,8 @@
       closeModal();
     }
 
-    // Initialize
-    renderCatalog(campusItems);
+    // Initialize state
+    checkSession();
   </script>
 </body>
 </html>
