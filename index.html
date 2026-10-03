@@ -201,6 +201,7 @@
     .item-body { padding: 1.1rem; flex: 1; display: flex; flex-direction: column; }
     .item-badge { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #F1F5F9; color: var(--text-muted); padding: 0.25rem 0.55rem; border-radius: 6px; width: fit-content; margin-bottom: 0.5rem; }
     .item-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.25rem; line-height: 1.3; }
+    .item-course { font-size: 0.82rem; color: var(--primary); font-weight: 700; margin-bottom: 0.5rem; }
     .item-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; flex: 1; line-height: 1.4; }
     .item-meta { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 0.85rem; margin-top: auto; }
     .item-price { font-size: 1.15rem; font-weight: 800; color: var(--text-main); }
@@ -379,13 +380,10 @@
         </a>
 
         <div class="user-profile-badge">
-          <!-- CLICKABLE PROFILE BADGE -->
-          <div class="auth-badge" onclick="openProfileModal()" title="View Student Profile">
-            <span>Student Profile: </span><strong id="userBadgeText">Verified</strong>
-          </div>
-          <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
-        </div>
-      </div>
+  <div class="auth-badge" onclick="openProfileModal()" title="View Student Profile">
+    <span>Student Profile: </span><strong id="userBadgeText">Verified</strong>
+  </div>
+</div>
     </header>
 
     <!-- Main Marketplace Container -->
@@ -400,7 +398,7 @@
       <!-- BORROW SECTION -->
       <div id="sectionBrowse">
         <div class="filter-card">
-          <input type="text" id="searchInput" class="search-input" placeholder="Search item" oninput="filterItems()">
+          <input type="text" id="searchInput" class="search-input" placeholder="Search item or course (e.g. FinMan 211, BA II Plus)..." oninput="filterItems()">
           <select id="categoryFilter" class="select-input" onchange="filterItems()">
             <option value="all">All Categories</option>
             <option value="calculators">Financial / Sci Calculators</option>
@@ -589,9 +587,9 @@
         <!-- Rendered dynamically -->
       </div>
 
-      <div style="margin-top: 1.5rem; text-align: right;">
-        <button class="btn btn-secondary" onclick="closeProfileModal()">Close</button>
-      </div>
+  <div style="margin-top: 1.5rem; text-align: right;">
+  <button class="btn btn-danger" onclick="handleLogout()">Log Out</button>
+</div>
     </div>
   </div>
 
@@ -602,6 +600,7 @@
         id: 1,
         title: "Texas Instruments BA II Plus Financial Calculator",
         category: "calculators",
+        course: "FinMan 211 / FinAcct 101",
         price: 150,
         deposit: 200,
         lenderEmail: "jgablanque@addu.edu.ph",
@@ -613,6 +612,7 @@
         id: 2,
         title: "Rotring Technical Drawing & Drafting Board Set",
         category: "drafting",
+        course: "EnggDraw 101 / Arch 102",
         price: 250,
         deposit: 300,
         lenderEmail: "agaw@addu.edu.ph",
@@ -624,6 +624,7 @@
         id: 3,
         title: "Standard White Laboratory Gown (Size M)",
         category: "labgown",
+        course: "SciLab 102 / Chem 11",
         price: 80,
         deposit: 100,
         lenderEmail: "ensremis@addu.edu.ph",
@@ -635,6 +636,7 @@
         id: 4,
         title: "Canon EOS 200D II DSLR Camera Kit",
         category: "tech",
+        course: "BFA Photo 101 / Comm 22",
         price: 600,
         deposit: 800,
         lenderEmail: "jgablanque@addu.edu.ph",
@@ -766,6 +768,7 @@
             <div class="item-body">
               <div class="item-badge">${item.category}</div>
               <div class="item-title">${item.title}</div>
+              <div class="item-course">📌 ${item.course}</div>
               <div class="item-desc">${item.desc}</div>
               <div class="item-meta">
                 <div class="item-price">₱${item.price} <span>/ sem</span></div>
@@ -828,6 +831,7 @@
         id: Date.now(),
         title: document.getElementById('lendTitle').value,
         category: document.getElementById('lendCategory').value,
+        course: document.getElementById('lendCourse').value,
         price: parseInt(document.getElementById('lendPrice').value),
         deposit: parseInt(document.getElementById('lendDeposit').value),
         zone: document.getElementById('lendZone').value,
