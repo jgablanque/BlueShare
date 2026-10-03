@@ -696,10 +696,16 @@
       checkSession();
     }
 
-    function handleLogout() {
-      localStorage.removeItem('blueShareUser');
-      checkSession();
-    }
+  function handleLogout() {
+  // Close the Student Profile modal first
+  document.getElementById('profileModal').classList.add('hidden');
+
+  // Remove the logged-in student session
+  localStorage.removeItem('blueShareUser');
+
+  // Return to the login screen
+  checkSession();
+}
 
     // --- User Profile Modal ---
     function openProfileModal() {
